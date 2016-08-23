@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#454545</color>
+    <color name="colorPrimaryDark">#454545</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <drawable name="menu_item_normal">#ffffff</drawable>
+    <drawable name="menu_item_pressed">#ff4b93</drawable>
+    <drawable name="new_select_normal">#000080</drawable>
+    <drawable name="new_select_pressed">#FF00FF</drawable>
+
+    <!-- 侧滑菜单 -->
+    <color name="item_press">#dbdbdb</color>
+    <color name="item_unpress">#f4f4f4</color>
+    <color name="item_text">#4A4A4A</color>
+
+    <!-- 标题颜色 -->
+    <color name="title_color">#0098FF</color>
+    <color name="title_backgroung_color">#4a96e5</color>
+    <!-- 分割线 -->
+    <color name="title_divider">#cdcccc</color>
+
+    <!-- 对话框按钮按下颜色 -->
+    <color name="dialog_button_press">#E3E3E3</color>
+
+
+
+    <!-- 背景色 -->
+    <color name="background">#F5F5F5</color>
+    <color name="white">#ffffff</color>
+    <color name="transparent">#00000000</color>
+    <color name="base_color_text_gray">#898989</color>
+    <color name="playback_color">#DBEAFA</color>
+
+    <drawable name="login_down">#00BFFF</drawable>
+    <drawable name="register_down">#7FFFD4</drawable>
+    <drawable name="register_up">#F0F8FF</drawable>
+
+    <color name="black">#000000</color>
+    <color name="light_black">#ff878787</color>
+    <color name="light_blue">#ff000066</color>
+    <!-- <color name="light_gray">#0000ff</color> -->
+    <color name="light_white">#ffcccccc</color>
+    <color name="red">#ffff0000</color>
+    <color name="green">#ff00ff00</color>
+    <color name="blue">#0000ff</color>
+    <color name="gray">#778899</color>
+    <color name="red2">#ffff4500</color>
+    <color name="red1">#ffff1493</color>
+    <color name="red4">#ffdc143c</color>
+    <color name="dodgerblue">#ff1e90ff</color>
+    <color name="nothing">#00000000</color>
+    <color name="little_grey">#e25a9e</color>
+    <color name="orange">#FF9900</color>
+    <!-- <color name="global_color">#6ba9e8</color> -->
+
+
+    <!-- 实况 -->
+    <color name="menu_background">#F5F5F5</color>
+    <color name="global_color">#4e96e5</color>
+    <color name="live_line">#cdcccc</color>
+    <color name="live_background">#f0f0f0</color>
+    <color name="bottom_menu_color">#4a4a4a</color>
+    <color name="bottom_menu_color_onlive">#a1a1a1</color>
+    <color name="bottom_menu_color_press">#424242</color>
+    <color name="live_playview_bg">#DBDBDB</color>
+    <color name="live_playview_toolbar_bg_nolive">#bcbcbc</color>
+    <color name="live_playview_toolbar_bg_live">#6ba9e8</color>
+    <color name="laggy_hint_bg">#BB000000</color>
+    <!-- 回放 -->
+    <color name="playback_notify_text">#bac6d3</color>
+
+    <color name="playback_color_bg">#DBEAFA</color>
+    <color name="global_text_color">#FFFFFF</color>
+    <color name="slidebg">#88575757</color>
+    <color name="slidebg1">#88555555</color>
+    <color name="slidebg_1">#ffff1493</color>
+    <color name="listitem_p">#c0c0c0</color>
+
+    <!-- 菜单按钮 -->
+    <color name="menu_press">#b0c4de</color>
+
+    <!-- 手势密码背景色 -->
+    <color name="bg_guester_pwd">#4a4a4a</color>
+
+    <!-- 灰色 -->
+    <color name="text_color_qian_hui">#666666</color>
+
+    <!-- 二维码 -->
+
+    <color name="contents_text">#ff000000</color>
+    <color name="encode_view">#ffffffff</color>
+    <color name="possible_result_points">#c0ffbd21</color>
+    <!-- Android standard ICS color -->
+    <color name="result_minor_text">#ffc0c0c0</color>
+    <color name="result_points">#c099cc00</color>
+    <!-- Android standard ICS color -->
+    <color name="result_text">#ffffffff</color>
+    <color name="result_view">#b0000000</color>
+    <color name="status_text">#ffffffff</color>
+    <color name="viewfinder_laser">#ffcc0000</color>
+    <!-- Android standard ICS color -->
+    <color name="viewfinder_mask">#60000000</color>
+    <!-- 圆点颜色 -->
+    <color name="circle_normal_color">#b9b9b9</color>
+    <color name="circle_focus_color">#4a96e5</color>
+    <!-- ruler标尺颜色值 -->
+    <color name="ruler_date_text_color">#CCCCCC</color>
+    <color name="ruler_time_text_color">#CCCCCC</color>
+    <color name="ruler_values_text_color">#CCCCCC</color>
+    <color name="ruler_limb_color">#4a4a4a</color>
+    <color name="ruler_top_time_bg_color">#FF6600</color>
+    <color name="ruler_video_record_color">#6ba9e8</color>
+    <color name="ruler_down_load_color">#CCFF33</color>
+    <color name="ruler_bg_color">#4E5C68</color>
+    <color name="ruler_border_color">#B5B5B5</color>
+    <color name="listview_left_line">#CBCFD2</color>
+    <color name="listview_week_textcolor">#CBCFD2</color>
+    <color name="listview_year_textcolor">#CBCFD2</color>
+    <color name="dialog_line">#308CAE</color>
+    <color name="bg_ruler">#e9e9e9</color>
+
+
+    <!-- 九宫格解锁 -->
+    <color name="blue_line">#48a2ff</color>
+    <color name="gesture_background">#4a4a4a</color>
+
+    <!-- 云台变倍背景色 -->
+    <color name="yuantai_bule">#5A9ADB</color>
+    <color name="yuantai_black">#030405</color>
+
+    <!-- 文件管理背景 -->
+    <color name="filemanager_blackground">#F7F7F7</color>
+    <color name="already_read">#666666</color>
+
+    <!-- 获取验证码按钮按下的背景色 -->
+    <color name="get_code_pressed">#e5f1fe</color>
+
+    <color name="device_list_pressed_bg">#303437</color>
+
+    <!-- 底部条状按钮未按下的颜色 -->
+    <color name="bottom_bt_unpressed_color">#8abff5</color>
+
+    <color name="empty_text_gray">#DBDBDB</color>
+
+    <!--WIFI配置选择框标题色 -->
+    <color name="holo_blue_light">#33b5e5</color>
+
+    <!--账户列表字体颜色 -->
+    <color name="account_name_text_color">#5a5a5a</color>
+
+    <color name="menu_account_gray">#8D97AA</color>
+
+    <color name="menu_divider">#e6e6e6</color>
+
+    <color name="delete_color">#4a96e5</color>
+
+</resources>

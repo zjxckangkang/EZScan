@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent">
+
+    <SurfaceView
+        android:id="@+id/preview_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_gravity="center"/>
+
+
+    <!-- 扫描窗口 -->
+
+    <ezscaner.uniview.app.ezscan.qr_codescan.ViewfinderView
+        android:id="@+id/viewfinder_view"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"/>
+
+    <!-- 顶部条栏 -->
+
+    <RelativeLayout
+        android:id="@+id/relative1"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/transparent">
+
+        <LinearLayout
+            android:id="@+id/aqcBack"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:gravity="center"
+            android:paddingLeft="10dp"
+            android:paddingRight="20dp">
+
+            <ImageView
+                android:id="@+id/aqcBtnBack"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/ic_arrow_back_white_48dp"/>
+        </LinearLayout>
+
+        <CheckBox
+            android:id="@+id/aqc_Flash"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/flash_selector"
+            android:button="@null"
+            android:gravity="center"/>
+
+        <Button
+            android:id="@+id/aqc_QRCode"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="10dp"
+            android:layout_toLeftOf="@+id/aqc_Flash"
+            android:background="@drawable/ic_photo_white_48dp"
+            android:gravity="center"/>
+
+
+    </RelativeLayout>
+
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="80dp"
+        android:textColor="@color/white"/>
+
+</FrameLayout>

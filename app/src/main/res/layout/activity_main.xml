@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                tools:context=".activity.MainActivity">
+
+    <RelativeLayout
+        android:id="@+id/rlTitleBar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentTop="true"
+        android:background="@color/colorPrimary">
+
+        <LinearLayout
+            android:id="@+id/llBack"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/ivBack"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/ic_arrow_back_white_48dp"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvLeft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginLeft="16dp"
+            android:text="@string/app_name"
+            android:textColor="@color/white"
+            android:textSize="23dp"/>
+
+        <TextView
+            android:id="@+id/tvCenter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:text="修改"
+            android:textColor="@color/white"
+            android:textSize="20dp"
+            android:visibility="gone"/>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/llInput"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/rlTitleBar"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/tvSNHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="资产编号"/>
+
+            <ezscaner.uniview.app.ezscan.view.EditTextWithDelete
+                android:id="@+id/etSN"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tvSNHint"
+                android:layout_toLeftOf="@+id/btSN"/>
+
+            <Button
+                android:id="@+id/btSN"
+                android:background="@drawable/ic_photo_camera_black_48dp"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignBottom="@+id/etSN"
+                android:layout_marginRight="10dp"
+                android:layout_alignParentRight="true"
+                android:text=""/>
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="资产地点"/>
+
+        <ezscaner.uniview.app.ezscan.view.EditTextWithDelete
+            android:id="@+id/etAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="备注"/>
+
+        <ezscaner.uniview.app.ezscan.view.EditTextWithDelete
+            android:id="@+id/etRemarks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+
+        <RelativeLayout
+            android:layout_marginTop="20dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RelativeLayout
+                android:id="@+id/rlQuery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/tvNumHint"
+                    android:layout_width="wrap_content"
+                    android:layout_alignParentLeft="true"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/btQuery"
+                    android:layout_marginTop="10dp"
+                    android:text="总数:"/>
+
+                <TextView
+                    android:id="@+id/tvNum"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignTop="@+id/tvNumHint"
+                    android:layout_toRightOf="@+id/tvNumHint"
+                    android:text="100"
+                    />
+
+                <Button
+                    android:id="@+id/btQuery"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_alignParentLeft="true"
+                    android:background="@drawable/ic_search_black_48dp"
+                    android:text=""/>
+            </RelativeLayout>
+
+
+
+            <Button
+                android:id="@+id/btAdd"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginRight="10dp"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/ic_add_black_48dp"
+                android:layout_alignTop="@+id/rlQuery"
+                android:text=""/>
+
+
+        </RelativeLayout>
+
+
+    </LinearLayout>
+
+
+</RelativeLayout>

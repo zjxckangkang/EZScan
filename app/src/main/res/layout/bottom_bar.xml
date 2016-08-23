@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/llBottom"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentBottom="true"
+    android:background="@color/white"
+    android:descendantFocusability="blocksDescendants"
+    android:orientation="vertical"
+    android:visibility="visible">
+
+    <View
+        android:id="@+id/topLine"
+        style="@style/horizontalDivider" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/ibMultiSelect"
+                style="@style/eventBottomButton"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/ic_check_box_outline_blank_black_24dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/ibShare"
+                style="@style/eventBottomButton"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/ic_share_black_48dp" />
+        </LinearLayout>
+
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/ibDelete"
+                style="@style/eventBottomButton"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/ic_delete_black_48dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+
+</LinearLayout>
