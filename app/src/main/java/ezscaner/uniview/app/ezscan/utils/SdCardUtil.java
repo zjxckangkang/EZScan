@@ -10,6 +10,8 @@ import java.io.IOException;
  */
 public class SdCardUtil {
     private static String SDCARD_FILE_NAME = "EZScan";
+    public static String appRootPath = SdCardUtil.getAPPRootDirectory();
+
 
     public static boolean isSdCardExist() {
         return Environment.getExternalStorageState().equals(

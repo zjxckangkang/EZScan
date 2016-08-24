@@ -25,6 +25,9 @@ public class BaseApplication extends Application {
         return INSTANCE;
     }
 
+    //记录最近一个启动的MainActivity类型，是否是编辑类型
+    public static boolean isEdit = false;
+
     @Override
     public void onCreate() {
         super.onCreate();

@@ -74,15 +74,15 @@ public class InfoListAdapter extends BaseAdapter {
             holder = (Holder) convertView.getTag();
         }
         final Device device = getItem(position);
-        holder.tvAddress.setText("位置:" + device.getLocation());
-        holder.tvSN.setText("编号:" + device.getSn());
+        holder.tvAddress.setText("位置  " + device.getLocation());
+        holder.tvSN.setText("编号  " + device.getSn());
         try {
             long addTime = Long.parseLong(device.getAddTime());
-            holder.tvAddTime.setText("添加于:" + DateTimeUtil.ts2str(addTime));
+            holder.tvAddTime.setText("时间  " + DateTimeUtil.ts2str(addTime));
 
         } catch (Exception e) {
             KLog.e("Exception");
-            holder.tvAddTime.setText("未知");
+            holder.tvAddTime.setText("");
         }
 //        holder.tvUpdateTime.setText("修改于:" + device.getUpdateTime());
         holder.tvUpdateTime.setVisibility(View.GONE);
@@ -91,7 +91,7 @@ public class InfoListAdapter extends BaseAdapter {
             holder.tvRemarks.setVisibility(View.GONE);
         } else {
             holder.tvRemarks.setVisibility(View.VISIBLE);
-            holder.tvRemarks.setText("备注:" + device.getRemarks());
+            holder.tvRemarks.setText("备注  " + device.getRemarks());
 
         }
 

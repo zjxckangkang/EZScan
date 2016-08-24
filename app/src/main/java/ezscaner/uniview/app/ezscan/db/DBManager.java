@@ -11,6 +11,7 @@ import java.util.List;
 import ezscaner.uniview.app.ezscan.application.BaseApplication;
 import ezscaner.uniview.app.ezscan.bean.Device;
 import ezscaner.uniview.app.ezscan.log.KLog;
+import ezscaner.uniview.app.ezscan.utils.AbStrUtil;
 
 /**
  * Created by Administrator on 2016/8/16.
@@ -111,6 +112,11 @@ public class DBManager {
     }
 
     public Device getDevice(String sn) {
+        if (AbStrUtil.isEmpty(sn)) {
+            KLog.e("sn == null");
+            return null;
+        }
+        KLog.e(sn);
         //Cursor对象返回查询结果
         Cursor cursor = mSQLiteDatabase.query(DBHelper.TABLE_NAME, null,
                 "sn = ?", new String[]{sn}, null, null, null, null);

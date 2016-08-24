@@ -62,4 +62,8 @@ public class SharePreferenceUtil {
         return sSharedPreferences.getString(key, defaultValue);
     }
 
+    public boolean get(String key, boolean defaultValue) {
+        return sSharedPreferences.getBoolean(key, defaultValue);
+    }
+
 }

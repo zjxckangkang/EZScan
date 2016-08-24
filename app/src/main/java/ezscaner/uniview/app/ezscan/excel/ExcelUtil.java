@@ -21,7 +21,7 @@ import jxl.write.WriteException;
  */
 public class ExcelUtil {
 
-    public static String appRootPath = SdCardUtil.getAPPRootDirectory();
+    public static String appRootPath = SdCardUtil.appRootPath;
     public static String SUFFIX = ".xls";
 
     private static WritableWorkbook createWorkbook(String path) {

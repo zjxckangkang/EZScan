@@ -48,6 +48,22 @@
             android:textSize="20dp"
             android:visibility="gone"/>
 
+        <!--<LinearLayout
+            android:id="@+id/llMore"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:layout_alignParentRight="true"
+            android:visibility="visible">
+
+            <ImageView
+                android:id="@+id/ivMore"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:background="@drawable/ic_more_vert_white_48dp"/>
+
+        </LinearLayout>-->
+
     </RelativeLayout>
 
     <LinearLayout
@@ -58,8 +74,19 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="资产地点"/>
+
+        <ezscaner.uniview.app.ezscan.view.EditTextWithDelete
+            android:id="@+id/etAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
 
         <RelativeLayout
+            android:layout_marginTop="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -76,27 +103,18 @@
                 android:layout_below="@+id/tvSNHint"
                 android:layout_toLeftOf="@+id/btSN"/>
 
+
             <Button
                 android:id="@+id/btSN"
-                android:background="@drawable/ic_photo_camera_black_48dp"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:layout_alignBottom="@+id/etSN"
-                android:layout_marginRight="10dp"
                 android:layout_alignParentRight="true"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/ic_photo_camera_black_48dp"
                 android:text=""/>
         </RelativeLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="资产地点"/>
-
-        <ezscaner.uniview.app.ezscan.view.EditTextWithDelete
-            android:id="@+id/etAddress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
 
         <TextView
             android:layout_width="wrap_content"
@@ -111,19 +129,20 @@
 
 
         <RelativeLayout
-            android:layout_marginTop="20dp"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp">
 
             <RelativeLayout
                 android:id="@+id/rlQuery"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
+
                 <TextView
                     android:id="@+id/tvNumHint"
                     android:layout_width="wrap_content"
-                    android:layout_alignParentLeft="true"
                     android:layout_height="wrap_content"
+                    android:layout_alignParentLeft="true"
                     android:layout_below="@+id/btQuery"
                     android:layout_marginTop="10dp"
                     android:text="总数:"/>
@@ -141,22 +160,48 @@
                     android:id="@+id/btQuery"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
+                    android:layout_marginLeft="10dp"
                     android:layout_alignParentLeft="true"
                     android:background="@drawable/ic_search_black_48dp"
                     android:text=""/>
             </RelativeLayout>
 
-
+            <CheckBox
+                android:layout_width="30dp"
+                android:button="@null"
+                android:id="@+id/cbAutoSave"
+                android:background="@drawable/device_selector"
+                android:layout_centerHorizontal="true"
+                android:layout_height="30dp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_below="@+id/cbAutoSave"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="10dp"
+                android:text="自动保存"
+                />
 
             <Button
                 android:id="@+id/btAdd"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginRight="10dp"
                 android:layout_alignParentRight="true"
-                android:background="@drawable/ic_add_black_48dp"
                 android:layout_alignTop="@+id/rlQuery"
+                android:layout_marginRight="15dp"
+                android:background="@drawable/ic_add_black_48dp"
                 android:text=""/>
+
+            <TextView
+                android:id="@+id/tvSaveState"
+                android:layout_width="wrap_content"
+                android:layout_below="@+id/btAdd"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="10dp"
+                android:layout_marginRight="10dp"
+                android:text="已保存"
+                />
 
 
         </RelativeLayout>

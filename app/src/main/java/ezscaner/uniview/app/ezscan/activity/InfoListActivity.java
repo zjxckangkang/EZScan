@@ -34,6 +34,7 @@ import ezscaner.uniview.app.ezscan.db.DBManager;
 import ezscaner.uniview.app.ezscan.excel.ExcelUtil;
 import ezscaner.uniview.app.ezscan.log.KLog;
 import ezscaner.uniview.app.ezscan.utils.DialogUtil;
+import ezscaner.uniview.app.ezscan.utils.FileUtil;
 import ezscaner.uniview.app.ezscan.utils.ListUtils;
 import ezscaner.uniview.app.ezscan.utils.SendEmailUtil;
 import ezscaner.uniview.app.ezscan.utils.SharePreferenceUtil;
@@ -331,8 +332,12 @@ public class InfoListActivity extends BaseAct {
 
     private ProgressDialog mProgressDialog = null;
 
+    private void clearCache(String path){
+        FileUtil.deleteFile(path);
+    }
+
     @Background
-    void sendExcel(String mailAddr) {
+    void sendExcel(final String mailAddr) {
         mProgressDialog.setProgress(0);
         mProgressDialog.setMax(2);
         ToastUtil.longShow(InfoListActivity.this, mHandler, "正在生成Excel");
@@ -349,7 +354,7 @@ public class InfoListActivity extends BaseAct {
             }
         }
 
-        String path = ExcelUtil.writeDevicesToWorkbook(devices);
+        final String path = ExcelUtil.writeDevicesToWorkbook(devices);
         KLog.e(path);
         if (path == null) {
             ToastUtil.longShow(this, "生成失败");
@@ -399,6 +404,7 @@ public class InfoListActivity extends BaseAct {
 
             @Override
             public void onFinish() {
+                clearCache(path);
                 DialogUtil.dismissDialog(mProgressDialog);
             }
         });

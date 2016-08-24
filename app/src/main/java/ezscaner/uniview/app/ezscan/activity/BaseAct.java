@@ -32,6 +32,13 @@ public class BaseAct extends Activity implements KeyConstants, PublicConstants, 
 
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        EventBus.getDefault().unregister(this);
+
+    }
+
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(APIMessage apiMessage) {
 
