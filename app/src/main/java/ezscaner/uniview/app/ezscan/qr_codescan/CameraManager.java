@@ -34,6 +34,7 @@ import com.google.zxing.PlanarYUVLuminanceSource;
 import java.io.IOException;
 import java.util.List;
 
+import ezscaner.uniview.app.ezscan.log.KLog;
 import ezscaner.uniview.app.ezscan.utils.ToastUtil;
 
 /**
@@ -41,484 +42,475 @@ import ezscaner.uniview.app.ezscan.utils.ToastUtil;
  * talking to it. The implementation encapsulates the steps needed to take
  * preview-sized images, which are used for both preview and decoding. <br/>
  * <br/>
- * 
+ * <p/>
  * 该类封装了相机的所有服务并且是该app中唯一与相机打交道的类
- * 
+ *
  * @author dswitkin@google.com (Daniel Switkin)
  */
 @TargetApi(Build.VERSION_CODES.GINGERBREAD)
 @SuppressLint("NewApi")
 public final class CameraManager {
 
-	private static final String TAG = CameraManager.class.getSimpleName();
+    private static final String TAG = CameraManager.class.getSimpleName();
 
-	private static final int MIN_FRAME_WIDTH = 400;
+    private static final int MIN_FRAME_WIDTH = 800;
 
-	private static final int MAX_FRAME_WIDTH = 1200; // = 5/8 * 1920
+    private static final int MAX_FRAME_WIDTH = 1200; // = 5/8 * 1920
 
-	private final Context context;
+    private final Context context;
 
-	private final CameraConfigurationManager configManager;
+    private final CameraConfigurationManager configManager;
 
-	private static Camera mCamera;
+    private static Camera mCamera;
 
-	private AutoFocusManager autoFocusManager;
+    private AutoFocusManager autoFocusManager;
 
-	private Rect mFramingRect;
+    private Rect mFramingRect;
 
-	private Rect framingRectInPreview;
+    private Rect framingRectInPreview;
 
-	private boolean initialized;
+    private boolean initialized;
 
-	private boolean previewing;
+    private boolean previewing;
 
-	private int requestedFramingRectWidth;
-	// private static CameraManager cameraManager;
-	private int requestedFramingRectHeight;
-	/**
-	 * Initializes this static object with the Context of the calling Activity.
-	 *
-	 * @param context
-	 *            The Activity which wants to use the camera.
-	 */
-	// public static void init(Context context) {
-	// if (cameraManager == null) {
-	// cameraManager = new CameraManager(context);
-	// }
-	// }
+    private int requestedFramingRectWidth;
+    // private static CameraManager cameraManager;
+    private int requestedFramingRectHeight;
+    /**
+     * Initializes this static object with the Context of the calling Activity.
+     *
+     * @param context
+     *            The Activity which wants to use the camera.
+     */
+    // public static void init(Context context) {
+    // if (cameraManager == null) {
+    // cameraManager = new CameraManager(context);
+    // }
+    // }
 
-	/**
-	 * Preview frames are delivered here, which we pass on to the registered
-	 * handler. Make sure to clear the handler so it will only receive one
-	 * message.
-	 */
-	private final PreviewCallback previewCallback;
+    /**
+     * Preview frames are delivered here, which we pass on to the registered
+     * handler. Make sure to clear the handler so it will only receive one
+     * message.
+     */
+    private final PreviewCallback previewCallback;
 
-	// public static CameraManager get() {
-	//
-	// return cameraManager;
-	// }
+    // public static CameraManager get() {
+    //
+    // return cameraManager;
+    // }
 
-	public CameraManager(Context context) {
-		this.context = context;
-		this.configManager = new CameraConfigurationManager(context);
-		previewCallback = new PreviewCallback(configManager);
-	}
+    public CameraManager(Context context) {
+        this.context = context;
+        this.configManager = new CameraConfigurationManager(context);
+        previewCallback = new PreviewCallback(configManager);
+    }
 
-	/**
-	 * Opens the camera driver and initializes the hardware parameters.
-	 * 
-	 * @param holder
-	 *            The surface object which the camera will draw preview frames
-	 *            into.
-	 * @throws IOException
-	 *             Indicates the camera driver failed to open.
-	 */
-	public synchronized void openDriver(SurfaceHolder holder)
-			throws IOException {
-		Camera theCamera = mCamera;
-		if (theCamera == null) {
-			// 获取手机背面的摄像头
-			theCamera = chooseOpen();
-			if (theCamera == null) {
-				throw new IOException();
-			}
-			mCamera = theCamera;
-		}
+    /**
+     * Opens the camera driver and initializes the hardware parameters.
+     *
+     * @param holder The surface object which the camera will draw preview frames
+     *               into.
+     * @throws IOException Indicates the camera driver failed to open.
+     */
+    public synchronized void openDriver(SurfaceHolder holder)
+            throws IOException {
+        Camera theCamera = mCamera;
+        if (theCamera == null) {
+            // 获取手机背面的摄像头
+            theCamera = chooseOpen();
+            if (theCamera == null) {
+                throw new IOException();
+            }
+            mCamera = theCamera;
+        }
 
-		// 设置摄像头预览view
-		theCamera.setPreviewDisplay(holder);
+        // 设置摄像头预览view
+        theCamera.setPreviewDisplay(holder);
 
-		if (!initialized) {
-			initialized = true;
-			configManager.initFromCameraParameters(theCamera);
-			if (requestedFramingRectWidth > 0 && requestedFramingRectHeight > 0) {
-				setManualFramingRect(requestedFramingRectWidth,
-						requestedFramingRectHeight);
-				requestedFramingRectWidth = 0;
-				requestedFramingRectHeight = 0;
-			}
-		}
+        if (!initialized) {
+            initialized = true;
+            configManager.initFromCameraParameters(theCamera);
+            if (requestedFramingRectWidth > 0 && requestedFramingRectHeight > 0) {
+                setManualFramingRect(requestedFramingRectWidth,
+                        requestedFramingRectHeight);
+                requestedFramingRectWidth = 0;
+                requestedFramingRectHeight = 0;
+            }
+        }
 
-		Camera.Parameters parameters = theCamera.getParameters();
-		String parametersFlattened = parameters == null ? null : parameters
-				.flatten(); // Save
-							// these,
-							// temporarily
-		try {
-			configManager.setDesiredCameraParameters(theCamera, false);
-		} catch (RuntimeException re) {
-			// Driver failed
-			Log.w(TAG,
-					"Camera rejected parameters. Setting only minimal safe-mode parameters");
-			Log.i(TAG, "Resetting to saved camera params: "
-					+ parametersFlattened);
-			// Reset:
-			if (parametersFlattened != null) {
-				parameters = theCamera.getParameters();
-				parameters.unflatten(parametersFlattened);
-				try {
-					theCamera.setParameters(parameters);
-					configManager.setDesiredCameraParameters(theCamera, true);
-				} catch (RuntimeException re2) {
-					// Well, darn. Give up
-					Log.w(TAG,
-							"Camera rejected even safe-mode parameters! No configuration");
-				}
-			}
-		}
+        Camera.Parameters parameters = theCamera.getParameters();
+        String parametersFlattened = parameters == null ? null : parameters
+                .flatten(); // Save
+        // these,
+        // temporarily
+        try {
+            configManager.setDesiredCameraParameters(theCamera, false);
+        } catch (RuntimeException re) {
+            // Driver failed
+            Log.w(TAG,
+                    "Camera rejected parameters. Setting only minimal safe-mode parameters");
+            Log.i(TAG, "Resetting to saved camera params: "
+                    + parametersFlattened);
+            // Reset:
+            if (parametersFlattened != null) {
+                parameters = theCamera.getParameters();
+                parameters.unflatten(parametersFlattened);
+                try {
+                    theCamera.setParameters(parameters);
+                    configManager.setDesiredCameraParameters(theCamera, true);
+                } catch (RuntimeException re2) {
+                    // Well, darn. Give up
+                    Log.w(TAG,
+                            "Camera rejected even safe-mode parameters! No configuration");
+                }
+            }
+        }
 
-	}
+    }
 
-	/**
-	 * 用于检测手机上摄像头的个数，如果有两个摄像头，则取背面的摄像头
-	 */
-	@SuppressLint("NewApi")
-	public Camera chooseOpen() {
+    /**
+     * 用于检测手机上摄像头的个数，如果有两个摄像头，则取背面的摄像头
+     */
+    @SuppressLint("NewApi")
+    public Camera chooseOpen() {
 
-		int numCameras = Camera.getNumberOfCameras();
-		if (numCameras == 0) {
-			Log.w(TAG, "No cameras!");
-			return null;
-		}
+        int numCameras = Camera.getNumberOfCameras();
+        if (numCameras == 0) {
+            Log.w(TAG, "No cameras!");
+            return null;
+        }
 
-		int index = 0;
-		while (index < numCameras) {
-			Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-			Camera.getCameraInfo(index, cameraInfo);
-			// CAMERA_FACING_BACK：手机背面的摄像头
-			if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
-				break;
-			}
-			index++;
-		}
+        int index = 0;
+        while (index < numCameras) {
+            Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+            Camera.getCameraInfo(index, cameraInfo);
+            // CAMERA_FACING_BACK：手机背面的摄像头
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
+                break;
+            }
+            index++;
+        }
 
-		Camera camera;
-		if (index < numCameras) {
-			Log.i(TAG, "Opening camera #" + index);
-			camera = Camera.open(index);
-		} else {
-			Log.i(TAG, "No camera facing back; returning camera #0");
-			camera = Camera.open(0);
-		}
+        Camera camera;
+        if (index < numCameras) {
+            Log.i(TAG, "Opening camera #" + index);
+            camera = Camera.open(index);
+        } else {
+            Log.i(TAG, "No camera facing back; returning camera #0");
+            camera = Camera.open(0);
+        }
 //		camera = Camera.open();
-		return camera;
-	}
+        return camera;
+    }
 
-	public synchronized boolean isOpen() {
-		return mCamera != null;
-	}
+    public synchronized boolean isOpen() {
+        return mCamera != null;
+    }
 
-	/**
-	 * Closes the camera driver if still in use.
-	 */
-	public synchronized void closeDriver() {
-		if (mCamera != null) {
-			mCamera.release();
-			mCamera = null;
-			// Make sure to clear these each time we close the camera, so that
-			// any scanning rect
-			// requested by intent is forgotten.
-			mFramingRect = null;
-			framingRectInPreview = null;
-		}
-	}
+    /**
+     * Closes the camera driver if still in use.
+     */
+    public synchronized void closeDriver() {
+        if (mCamera != null) {
+            mCamera.release();
+            mCamera = null;
+            // Make sure to clear these each time we close the camera, so that
+            // any scanning rect
+            // requested by intent is forgotten.
+            mFramingRect = null;
+            framingRectInPreview = null;
+        }
+    }
 
-	/**
-	 * Asks the camera hardware to begin drawing preview frames to the screen.
-	 */
-	public synchronized void startPreview() {
-		Camera theCamera = mCamera;
-		if (theCamera != null && !previewing) {
-			// Starts capturing and drawing preview frames to the screen
-			// Preview will not actually start until a surface is supplied with
-			// setPreviewDisplay(SurfaceHolder) or
-			// setPreviewTexture(SurfaceTexture).
-			theCamera.startPreview();
+    /**
+     * Asks the camera hardware to begin drawing preview frames to the screen.
+     */
+    public synchronized void startPreview() {
+        Camera theCamera = mCamera;
+        if (theCamera != null && !previewing) {
+            // Starts capturing and drawing preview frames to the screen
+            // Preview will not actually start until a surface is supplied with
+            // setPreviewDisplay(SurfaceHolder) or
+            // setPreviewTexture(SurfaceTexture).
+            theCamera.startPreview();
 
-			previewing = true;
-			autoFocusManager = new AutoFocusManager(context, mCamera);
-		}
-	}
+            previewing = true;
+            autoFocusManager = new AutoFocusManager(context, mCamera);
+        }
+    }
 
-	/**
-	 * Tells the camera to stop drawing preview frames.
-	 */
-	public synchronized void stopPreview() {
-		if (autoFocusManager != null) {
-			autoFocusManager.stop();
-			autoFocusManager = null;
-		}
-		if (mCamera != null && previewing) {
-			mCamera.stopPreview();
-			previewCallback.setHandler(null, 0);
-			previewing = false;
-		}
-	}
+    /**
+     * Tells the camera to stop drawing preview frames.
+     */
+    public synchronized void stopPreview() {
+        if (autoFocusManager != null) {
+            autoFocusManager.stop();
+            autoFocusManager = null;
+        }
+        if (mCamera != null && previewing) {
+            mCamera.stopPreview();
+            previewCallback.setHandler(null, 0);
+            previewing = false;
+        }
+    }
 
-	public synchronized void setTorch(boolean newSetting) {
-		if (newSetting != configManager.getTorchState(mCamera)) {
-			if (mCamera != null) {
-				if (autoFocusManager != null) {
-					autoFocusManager.stop();
-				}
-				configManager.setTorch(mCamera, newSetting);
-				if (autoFocusManager != null) {
-					autoFocusManager.start();
-				}
-			}
-		}
-	}
+    public synchronized void setTorch(boolean newSetting) {
+        if (newSetting != configManager.getTorchState(mCamera)) {
+            if (mCamera != null) {
+                if (autoFocusManager != null) {
+                    autoFocusManager.stop();
+                }
+                configManager.setTorch(mCamera, newSetting);
+                if (autoFocusManager != null) {
+                    autoFocusManager.start();
+                }
+            }
+        }
+    }
 
-	/**
-	 * A single preview frame will be returned to the handler supplied. The data
-	 * will arrive as byte[] in the message.obj field, with width and height
-	 * encoded as message.arg1 and message.arg2, respectively. <br/>
-	 * 
-	 * 两个绑定操作：<br/>
-	 * 1：将handler与回调函数绑定；<br/>
-	 * 2：将相机与回调函数绑定<br/>
-	 * 综上，该函数的作用是当相机的预览界面准备就绪后就会调用hander向其发送传入的message
-	 * 
-	 * @param handler
-	 *            The handler to send the message to.
-	 * @param message
-	 *            The what field of the message to be sent.
-	 */
-	public synchronized void requestPreviewFrame(Handler handler, int message) {
-		Camera theCamera = mCamera;
-		if (theCamera != null && previewing) {
-			previewCallback.setHandler(handler, message);
+    /**
+     * A single preview frame will be returned to the handler supplied. The data
+     * will arrive as byte[] in the message.obj field, with width and height
+     * encoded as message.arg1 and message.arg2, respectively. <br/>
+     * <p/>
+     * 两个绑定操作：<br/>
+     * 1：将handler与回调函数绑定；<br/>
+     * 2：将相机与回调函数绑定<br/>
+     * 综上，该函数的作用是当相机的预览界面准备就绪后就会调用hander向其发送传入的message
+     *
+     * @param handler The handler to send the message to.
+     * @param message The what field of the message to be sent.
+     */
+    public synchronized void requestPreviewFrame(Handler handler, int message) {
+        Camera theCamera = mCamera;
+        if (theCamera != null && previewing) {
+            previewCallback.setHandler(handler, message);
 
-			// 绑定相机回调函数，当预览界面准备就绪后会回调Camera.PreviewCallback.onPreviewFrame
-			theCamera.setOneShotPreviewCallback(previewCallback);
-		}
-	}
+            // 绑定相机回调函数，当预览界面准备就绪后会回调Camera.PreviewCallback.onPreviewFrame
+            theCamera.setOneShotPreviewCallback(previewCallback);
+        }
+    }
 
-	/**
-	 * Calculates the framing rect which the UI should draw to show the user
-	 * where to place the barcode. This target helps with alignment as well as
-	 * forces the user to hold the device far enough away to ensure the image
-	 * will be in focus.
-	 * 
-	 * @return The rectangle to draw on screen in window coordinates.
-	 */
-	public synchronized Rect getFramingRect() {
-		if (mFramingRect == null) {
-			if (mCamera == null) {
-				return null;
-			}
-			Point screenResolution = configManager.getScreenResolution();
-			if (screenResolution == null) {
-				// Called early, before init even finished
-				return null;
-			}
+    /**
+     * Calculates the framing rect which the UI should draw to show the user
+     * where to place the barcode. This target helps with alignment as well as
+     * forces the user to hold the device far enough away to ensure the image
+     * will be in focus.
+     *
+     * @return The rectangle to draw on screen in window coordinates.
+     */
+    public synchronized Rect getFramingRect() {
+        if (mFramingRect == null) {
+            if (mCamera == null) {
+                return null;
+            }
+            Point screenResolution = configManager.getScreenResolution();
+            if (screenResolution == null) {
+                // Called early, before init even finished
+                return null;
+            }
 
-			int width = findDesiredDimensionInRange(screenResolution.x,
-					MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
-			// 将扫描框设置成一个正方形
-			int height = width;
+            int width = findDesiredDimensionInRange(screenResolution.x,
+                    MIN_FRAME_WIDTH, MAX_FRAME_WIDTH);
+            // 将扫描框设置成一个正方形
+            int height = width;
 
-			int leftOffset = (screenResolution.x - width) / 2;
-			int topOffset = (screenResolution.y - height) / 2;
-			mFramingRect = new Rect(leftOffset, topOffset - 80, leftOffset
-					+ width, topOffset - 80 + height);
-			Log.d(TAG, "Calculated framing rect: " + mFramingRect);
-		}
+            int leftOffset = (screenResolution.x - width) / 2;
+            int topOffset = (screenResolution.y - height) / 2;
+            mFramingRect = new Rect(leftOffset, topOffset - 80, leftOffset
+                    + width, topOffset - 80);
+            KLog.i("Calculated framing rect: ", mFramingRect.toString());
+        }
 
-		return mFramingRect;
-	}
+        return mFramingRect;
+    }
 
-	/**
-	 * Target 5/8 of each dimension<br/>
-	 * 计算结果在hardMin~hardMax之间
-	 * 
-	 * @param resolution
-	 * @param hardMin
-	 * @param hardMax
-	 * @return
-	 */
-	private static int findDesiredDimensionInRange(int resolution, int hardMin,
-			int hardMax) {
-		int dim = 5 * resolution / 8; // Target 5/8 of each dimension
-		if (dim < hardMin) {
-			return hardMin;
-		}
-		if (dim > hardMax) {
-			return hardMax;
-		}
-		return dim;
-	}
+    /**
+     * Target 5/8 of each dimension<br/>
+     * 计算结果在hardMin~hardMax之间
+     *
+     * @param resolution
+     * @param hardMin
+     * @param hardMax
+     * @return
+     */
+    private static int findDesiredDimensionInRange(int resolution, int hardMin,
+                                                   int hardMax) {
+        int dim = 5 * resolution / 8; // Target 5/8 of each dimension
+        if (dim < hardMin) {
+            return hardMin;
+        }
+        if (dim > hardMax) {
+            return hardMax;
+        }
+        return dim;
+    }
 
-	/**
-	 * Like {@link #getFramingRect} but coordinates are in terms of the preview
-	 * frame, not UI / screen.
-	 */
-	public synchronized Rect getFramingRectInPreview() {
-		if (framingRectInPreview == null) {
-			Rect framingRect = getFramingRect();
-			if (framingRect == null) {
-				return null;
-			}
-			Rect rect = new Rect(framingRect);
-			Point cameraResolution = configManager.getCameraResolution();
-			Point screenResolution = configManager.getScreenResolution();
-			if (cameraResolution == null || screenResolution == null) {
-				// Called early, before init even finished
-				return null;
-			}
-			rect.left = rect.left * cameraResolution.y / screenResolution.x;
-			rect.right = rect.right * cameraResolution.y / screenResolution.x;
-			rect.top = rect.top * cameraResolution.x / screenResolution.y;
-			rect.bottom = rect.bottom * cameraResolution.x / screenResolution.y;
-			framingRectInPreview = rect;
+    /**
+     * Like {@link #getFramingRect} but coordinates are in terms of the preview
+     * frame, not UI / screen.
+     */
+    public synchronized Rect getFramingRectInPreview() {
+        if (framingRectInPreview == null) {
+            Rect framingRect = getFramingRect();
+            if (framingRect == null) {
+                return null;
+            }
+            Rect rect = new Rect(framingRect);
+            Point cameraResolution = configManager.getCameraResolution();
+            Point screenResolution = configManager.getScreenResolution();
+            if (cameraResolution == null || screenResolution == null) {
+                // Called early, before init even finished
+                return null;
+            }
+            rect.left = rect.left * cameraResolution.y / screenResolution.x;
+            rect.right = rect.right * cameraResolution.y / screenResolution.x;
+            rect.top = rect.top * cameraResolution.x / screenResolution.y;
+            rect.bottom = rect.bottom * cameraResolution.x / screenResolution.y;
+            framingRectInPreview = rect;
 
-			Log.d(TAG, "Calculated framingRectInPreview rect: "
-					+ framingRectInPreview);
-			Log.d(TAG, "cameraResolution: " + cameraResolution);
-			Log.d(TAG, "screenResolution: " + screenResolution);
-		}
+            Log.d(TAG, "Calculated framingRectInPreview rect: "
+                    + framingRectInPreview);
+            Log.d(TAG, "cameraResolution: " + cameraResolution);
+            Log.d(TAG, "screenResolution: " + screenResolution);
+        }
 
-		return framingRectInPreview;
-	}
+        return framingRectInPreview;
+    }
 
-	/**
-	 * Allows third party apps to specify the scanning rectangle dimensions,
-	 * rather than determine them automatically based on screen resolution.
-	 * 
-	 * @param width
-	 *            The width in pixels to scan.
-	 * @param height
-	 *            The height in pixels to scan.
-	 */
-	public synchronized void setManualFramingRect(int width, int height) {
-		if (initialized) {
-			Point screenResolution = configManager.getScreenResolution();
-			if (width > screenResolution.x) {
-				width = screenResolution.x;
-			}
-			if (height > screenResolution.y) {
-				height = screenResolution.y;
-			}
-			int leftOffset = (screenResolution.x - width) / 2;
-			int topOffset = (screenResolution.y - height) / 2;
-			// framingRect = new Rect(leftOffset, topOffset, leftOffset + width,
-			// topOffset + height);
-			mFramingRect = new Rect(leftOffset, topOffset - 80, leftOffset
-					+ width, topOffset - 80 + height);
-			Log.d(TAG, "Calculated manual framing rect: " + mFramingRect);
-			framingRectInPreview = null;
-		} else {
-			requestedFramingRectWidth = width;
-			requestedFramingRectHeight = height;
-		}
-	}
+    /**
+     * Allows third party apps to specify the scanning rectangle dimensions,
+     * rather than determine them automatically based on screen resolution.
+     *
+     * @param width  The width in pixels to scan.
+     * @param height The height in pixels to scan.
+     */
+    public synchronized void setManualFramingRect(int width, int height) {
+        if (initialized) {
+            Point screenResolution = configManager.getScreenResolution();
+            if (width > screenResolution.x) {
+                width = screenResolution.x;
+            }
+            if (height > screenResolution.y) {
+                height = screenResolution.y;
+            }
+            int leftOffset = (screenResolution.x - width) / 2;
+            int topOffset = (screenResolution.y - height) / 2;
+            // framingRect = new Rect(leftOffset, topOffset, leftOffset + width,
+            // topOffset + height);
+            mFramingRect = new Rect(0, topOffset - 80, 2 * leftOffset
+                    + width, topOffset - 80 + height);
+            KLog.i("Calculated manual framing rect: ", mFramingRect.toString());
+            framingRectInPreview = null;
+        } else {
+            requestedFramingRectWidth = width;
+            requestedFramingRectHeight = height;
+        }
+    }
 
-	/**
-	 * A factory method to build the appropriate LuminanceSource object based on
-	 * the format of the preview buffers, as described by Camera.Parameters.
-	 * 
-	 * @param data
-	 *            A preview frame.
-	 * @param width
-	 *            The width of the image.
-	 * @param height
-	 *            The height of the image.
-	 * @return A PlanarYUVLuminanceSource instance.
-	 */
-	public PlanarYUVLuminanceSource buildLuminanceSource(byte[] data,
-														 int width, int height) {
-		Rect rect = getFramingRectInPreview();
-		if (rect == null) {
-			return null;
-		}
-		// Go ahead and assume it's YUV rather than die.
-		return new PlanarYUVLuminanceSource(data, width, height, rect.left,
-				rect.top, rect.width(), rect.height(), false);
-	}
+    /**
+     * A factory method to build the appropriate LuminanceSource object based on
+     * the format of the preview buffers, as described by Camera.Parameters.
+     *
+     * @param data   A preview frame.
+     * @param width  The width of the image.
+     * @param height The height of the image.
+     * @return A PlanarYUVLuminanceSource instance.
+     */
+    public PlanarYUVLuminanceSource buildLuminanceSource(byte[] data,
+                                                         int width, int height) {
+        Rect rect = getFramingRectInPreview();
+        if (rect == null) {
+            return null;
+        }
+        // Go ahead and assume it's YUV rather than die.
+        return new PlanarYUVLuminanceSource(data, width, height, rect.left,
+                rect.top, rect.width(), rect.height(), false);
+    }
 
-	public static Camera getCamera() {
-		// TODO Auto-generated method stub
-		return mCamera;
-	}
+    public static Camera getCamera() {
+        // TODO Auto-generated method stub
+        return mCamera;
+    }
 
-	public void openF() {
+    public void openF() {
 //	chooseOpen();
-		if(mCamera==null){
-			ToastUtil.shortShow(context, "dddddddddddddddd");
-			return;
-		}
-		Parameters params = mCamera.getParameters();
-		/*
-		 * System.out.println("���������");
+        if (mCamera == null) {
+            ToastUtil.shortShow(context, "dddddddddddddddd");
+            return;
+        }
+        Parameters params = mCamera.getParameters();
+        /*
+         * System.out.println("���������");
 		 * params.setFlashMode(Parameters.FLASH_MODE_TORCH);
 		 * camera.setParameters(params);
 		 */
-		// TODO Auto-generated method stub
-		if (mCamera == null) {
-			Toast.makeText(context, "Camera not found", Toast.LENGTH_LONG);
-			// Use the screen as a flashlight (next best thing)
-			// button.setBackgroundColor(COLOR_WHITE);
-			return;
-		}
-		Parameters parameters = mCamera.getParameters();
-		if (parameters == null) {
-			// Use the screen as a flashlight (next best thing)
-			// button.setBackgroundColor(COLOR_WHITE);
-			return;
-		}
-		List<String> flashModes = parameters.getSupportedFlashModes();
-		// Check if camera flash exists
-		if (flashModes == null) {
-			// Use the screen as a flashlight (next best thing)
-			// button.setBackgroundColor(COLOR_WHITE);
-			return;
-		}
-		String flashMode = parameters.getFlashMode();
-		if (!Parameters.FLASH_MODE_TORCH.equals(flashMode)) {
-			// Turn on the flash
-			if (flashModes.contains(Parameters.FLASH_MODE_TORCH)) {
-				parameters.setFlashMode(Parameters.FLASH_MODE_TORCH);
-				mCamera.setParameters(parameters);
-			} else {
-				Toast.makeText(context, "Flash mode (torch) not supported",
-						Toast.LENGTH_LONG);
-				// Use the screen as a flashlight (next best thing)
-				Log.e(TAG, "FLASH_MODE_TORCH not supported");
-			}
-		}
-	}
+        // TODO Auto-generated method stub
+        if (mCamera == null) {
+            Toast.makeText(context, "Camera not found", Toast.LENGTH_LONG);
+            // Use the screen as a flashlight (next best thing)
+            // button.setBackgroundColor(COLOR_WHITE);
+            return;
+        }
+        Parameters parameters = mCamera.getParameters();
+        if (parameters == null) {
+            // Use the screen as a flashlight (next best thing)
+            // button.setBackgroundColor(COLOR_WHITE);
+            return;
+        }
+        List<String> flashModes = parameters.getSupportedFlashModes();
+        // Check if camera flash exists
+        if (flashModes == null) {
+            // Use the screen as a flashlight (next best thing)
+            // button.setBackgroundColor(COLOR_WHITE);
+            return;
+        }
+        String flashMode = parameters.getFlashMode();
+        if (!Parameters.FLASH_MODE_TORCH.equals(flashMode)) {
+            // Turn on the flash
+            if (flashModes.contains(Parameters.FLASH_MODE_TORCH)) {
+                parameters.setFlashMode(Parameters.FLASH_MODE_TORCH);
+                mCamera.setParameters(parameters);
+            } else {
+                Toast.makeText(context, "Flash mode (torch) not supported",
+                        Toast.LENGTH_LONG);
+                // Use the screen as a flashlight (next best thing)
+                Log.e(TAG, "FLASH_MODE_TORCH not supported");
+            }
+        }
+    }
 
-	public void stopF() {
-		/*
-		 * Parameters params = camera.getParameters();
+    public void stopF() {
+        /*
+         * Parameters params = camera.getParameters();
 		 * params.setFlashMode(Parameters.FLASH_MODE_OFF);
 		 * camera.setParameters(params);
 		 */
-		if (mCamera == null) {
-			return;
-		}
-		Parameters parameters = mCamera.getParameters();
-		if (parameters == null) {
-			return;
-		}
-		List<String> flashModes = parameters.getSupportedFlashModes();
-		String flashMode = parameters.getFlashMode();
-		// Check if camera flash exists
-		if (flashModes == null) {
-			return;
-		}
-		Log.i(TAG, "Flash mode: " + flashMode);
-		Log.i(TAG, "Flash modes: " + flashModes);
-		if (!Parameters.FLASH_MODE_OFF.equals(flashMode)) {
-			// Turn off the flash
-			if (flashModes.contains(Parameters.FLASH_MODE_OFF)) {
-				parameters.setFlashMode(Parameters.FLASH_MODE_OFF);
-				mCamera.setParameters(parameters);
-			} else {
-				Log.e(TAG, "FLASH_MODE_OFF not supported");
-			}
-		}
-	}
+        if (mCamera == null) {
+            return;
+        }
+        Parameters parameters = mCamera.getParameters();
+        if (parameters == null) {
+            return;
+        }
+        List<String> flashModes = parameters.getSupportedFlashModes();
+        String flashMode = parameters.getFlashMode();
+        // Check if camera flash exists
+        if (flashModes == null) {
+            return;
+        }
+        Log.i(TAG, "Flash mode: " + flashMode);
+        Log.i(TAG, "Flash modes: " + flashModes);
+        if (!Parameters.FLASH_MODE_OFF.equals(flashMode)) {
+            // Turn off the flash
+            if (flashModes.contains(Parameters.FLASH_MODE_OFF)) {
+                parameters.setFlashMode(Parameters.FLASH_MODE_OFF);
+                mCamera.setParameters(parameters);
+            } else {
+                Log.e(TAG, "FLASH_MODE_OFF not supported");
+            }
+        }
+    }
 
 }

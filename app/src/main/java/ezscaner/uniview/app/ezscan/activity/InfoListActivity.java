@@ -33,6 +33,7 @@ import ezscaner.uniview.app.ezscan.bean.Device;
 import ezscaner.uniview.app.ezscan.db.DBManager;
 import ezscaner.uniview.app.ezscan.excel.ExcelUtil;
 import ezscaner.uniview.app.ezscan.log.KLog;
+import ezscaner.uniview.app.ezscan.utils.AbInputRules;
 import ezscaner.uniview.app.ezscan.utils.DialogUtil;
 import ezscaner.uniview.app.ezscan.utils.FileUtil;
 import ezscaner.uniview.app.ezscan.utils.ListUtils;
@@ -278,9 +279,13 @@ public class InfoListActivity extends BaseAct {
             @Override
             public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
 
-                mProgressDialog = DialogUtil.showProgressDialog(InfoListActivity.this, "请稍候", ProgressDialog.STYLE_HORIZONTAL);
-
-                sendExcel(etMailAddr.getText().toString());
+                if (AbInputRules.isEmail(etMailAddr.getText().toString())){
+                    mProgressDialog = DialogUtil.showProgressDialog(InfoListActivity.this, "请稍候", ProgressDialog.STYLE_HORIZONTAL);
+                    sendExcel(etMailAddr.getText().toString());
+                }else {
+                    ToastUtil.longShow(InfoListActivity.this,"请输入正确的邮箱地址");
+                    share();
+                }
             }
         }, "取消", null, etMailView);
     }

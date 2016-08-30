@@ -34,7 +34,16 @@ public class DialogUtil {
         return materialDialog;
     }
 
-    public static void showDialog(final Context context, String title
+    public static MaterialDialog showDialog(final Context context, String title) {
+        MaterialDialog.Builder builder = new MaterialDialog.Builder(context)
+                .title(title)
+                .positiveText("确定");
+        MaterialDialog materialDialog = builder.build();
+        materialDialog.show();
+        return materialDialog;
+    }
+
+    public static MaterialDialog showDialog(final Context context, String title
             , String confirmBtnText, MaterialDialog.SingleButtonCallback singleButtonCallback1
             , String cancelBtnText, MaterialDialog.SingleButtonCallback singleButtonCallback2, View contentView) {
         MaterialDialog.Builder builder = new MaterialDialog.Builder(context)
@@ -48,6 +57,7 @@ public class DialogUtil {
         MaterialDialog materialDialog = builder.build();
         materialDialog.show();
         materialDialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+        return materialDialog;
 
 //        create.setContentView(contentView);
     }

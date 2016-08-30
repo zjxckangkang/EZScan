@@ -1,8 +1,11 @@
 package ezscaner.uniview.app.ezscan.activity;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.text.Editable;
 import android.view.View;
 import android.widget.Button;
@@ -31,20 +34,26 @@ import ezscaner.uniview.app.ezscan.log.KLog;
 import ezscaner.uniview.app.ezscan.utils.AbStrUtil;
 import ezscaner.uniview.app.ezscan.utils.DialogUtil;
 import ezscaner.uniview.app.ezscan.utils.SharePreferenceUtil;
+import ezscaner.uniview.app.ezscan.utils.SoundUtil;
 import ezscaner.uniview.app.ezscan.utils.ToastUtil;
+import ezscaner.uniview.app.ezscan.utils.VibratorUtil;
 import ezscaner.uniview.app.ezscan.view.EditTextWithDelete;
 
 
 @EActivity(R.layout.activity_main)
 public class MainActivity extends BaseAct {
 
-
     @ViewById
     Button btQuery;
 
     @ViewById
-    View rlQuery;
+    View llQuery;
 
+    @ViewById
+    View llContinue;
+
+    @ViewById
+    View llSave;
 
     @ViewById
     Button btSN;
@@ -63,6 +72,9 @@ public class MainActivity extends BaseAct {
 
     @ViewById
     CheckBox cbAutoSave;
+
+    @ViewById
+    CheckBox cbContinue;
 
     @ViewById
     View llBack;
@@ -143,10 +155,38 @@ public class MainActivity extends BaseAct {
         startActivity(intent);
     }
 
-    @Click(R.id.btSN)
-    void scan() {
+    private void openScanActivity() {
         Intent intent = new Intent(this, QRCodeScanAct_.class);
         startActivity(intent);
+    }
+
+    @Click(R.id.btSN)
+    void scan() {
+        int permissionCheck = ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.CAMERA}, CAMERA_PERMISSION);
+        } else {
+            openScanActivity();
+        }
+
+//        Intent intent = new Intent(this, QRCodeScanAct_.class);
+//        startActivity(intent);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (requestCode == CAMERA_PERMISSION) {
+            if (grantResults != null && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                openScanActivity();
+
+            } else {
+                DialogUtil.showDialog(this, "请再次点击扫描按钮或者前往设置->应用程序->"
+                        + MainActivity.this.getString(R.string.app_name) + "->权限，授予相机权限");
+
+            }
+
+        }
+
     }
 
     @AfterViews
@@ -162,13 +202,33 @@ public class MainActivity extends BaseAct {
 
 
     private void initListener() {
-        cbAutoSave.setChecked(SharePreferenceUtil.getInstance().get(AUTO_SAVE, false));
+        cbAutoSave.setChecked(BaseApplication.getInstance().isAutoSave());
+        cbContinue.setChecked(BaseApplication.getInstance().isContinueScan());
         cbAutoSave.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                SharePreferenceUtil.getInstance().write(AUTO_SAVE, isChecked);
+
+                BaseApplication.getInstance().setAutoSave(isChecked);
+                if (!isChecked) {
+                    cbContinue.setChecked(false);
+                }
             }
         });
+
+        cbContinue.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                BaseApplication.getInstance().setContinueScan(isChecked);
+                if (isChecked) {
+                    cbAutoSave.setChecked(true);
+                    if (!SharePreferenceUtil.getInstance().get(CONTINUE_SCAN_HINT, false)) {
+                        DialogUtil.showDialog(MainActivity.this, "扫描时将自动保存资产信息");
+                        SharePreferenceUtil.getInstance().write(CONTINUE_SCAN_HINT, true);
+                    }
+                }
+            }
+        });
+
         tvSaveState.setVisibility(View.INVISIBLE);
         etSN.setAfterTextChangedListener(new EditTextWithDelete.AfterTextChangedListener() {
             @Override
@@ -350,13 +410,17 @@ public class MainActivity extends BaseAct {
     private void initEditMode() {
         if (isEditMode) {
             btAdd.setBackgroundResource(R.drawable.ic_save_black_48dp);
-            rlQuery.setVisibility(View.INVISIBLE);
             etAddress.setText(mDevice.getLocation());
             etRemarks.setText(mDevice.getRemarks());
             etSN.setText(mDevice.getSn());
             tvLeft.setVisibility(View.GONE);
             tvCenter.setVisibility(View.VISIBLE);
             llBack.setVisibility(View.VISIBLE);
+
+            llQuery.setVisibility(View.INVISIBLE);
+            llContinue.setVisibility(View.INVISIBLE);
+            llSave.setVisibility(View.INVISIBLE);
+
         }
 
     }
@@ -391,10 +455,24 @@ public class MainActivity extends BaseAct {
             KLog.e(viewMessage.event);
             switch (viewMessage.event) {
                 case R.id.scan_result: {
+
+                    VibratorUtil.shake(this);
+                    SoundUtil.beep(this);
                     etSN.setText(viewMessage.data.toString());
-                    if (cbAutoSave.isChecked()) {
+
+                    if (BaseApplication.getInstance().isContinueScan()) {
+
+                        //连续扫描只添加，不会覆盖
+                        if (DBManager.getInstance().getDevice(viewMessage.data.toString()) == null) {
+                            add();
+                        } else {
+                            ToastUtil.longShow(this, "资产已存在");
+                        }
+
+                    } else if (BaseApplication.getInstance().isAutoSave()) {
                         add();
                     }
+
 
                 }
             }

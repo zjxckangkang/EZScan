@@ -27,6 +27,7 @@
   <item name="decode" type="id" />
   <item name="decode_failed" type="id" />
   <item name="decode_succeeded" type="id" />
+  <item name="decode_succeeded_byzbar" type="id" />
   <item name="launch_product_query" type="id" />
   <item name="quit" type="id" />
   <item name="restart_preview" type="id" />

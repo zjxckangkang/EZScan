@@ -21,6 +21,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.TextView;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
@@ -30,6 +31,12 @@ import com.google.zxing.Result;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.qrcode.QRCodeReader;
 
+import net.sourceforge.zbar.Image;
+import net.sourceforge.zbar.ImageScanner;
+import net.sourceforge.zbar.Symbol;
+import net.sourceforge.zbar.SymbolSet;
+
+import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.CheckedChange;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EActivity;
@@ -37,11 +44,13 @@ import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.util.Hashtable;
 import java.util.Vector;
 
-import ezscaner.uniview.app.ezscan.constants.KeyConstants;
 import ezscaner.uniview.app.ezscan.R;
+import ezscaner.uniview.app.ezscan.application.BaseApplication;
+import ezscaner.uniview.app.ezscan.constants.KeyConstants;
 import ezscaner.uniview.app.ezscan.eventbus.ViewMessage;
 import ezscaner.uniview.app.ezscan.log.KLog;
 import ezscaner.uniview.app.ezscan.qr_codescan.BeepManager;
@@ -51,6 +60,8 @@ import ezscaner.uniview.app.ezscan.qr_codescan.DecodeThread;
 import ezscaner.uniview.app.ezscan.qr_codescan.FinishListener;
 import ezscaner.uniview.app.ezscan.qr_codescan.InactivityTimer;
 import ezscaner.uniview.app.ezscan.qr_codescan.ViewfinderView;
+import ezscaner.uniview.app.ezscan.utils.AbStrUtil;
+import ezscaner.uniview.app.ezscan.utils.BitmapUtil;
 import ezscaner.uniview.app.ezscan.utils.StringUtils;
 import ezscaner.uniview.app.ezscan.utils.ToastUtil;
 
@@ -67,6 +78,9 @@ public class QRCodeScanAct extends BaseAct implements SurfaceHolder.Callback {
 
     @ViewById(R.id.preview_view)
     SurfaceView surfaceView;
+
+    @ViewById
+    TextView tvSn;
 
     // public SharedPreferences mSharedPreferences;// 存储二维码条形码选择的状态
     // public static String currentState;// 条形码二维码选择状态
@@ -153,19 +167,28 @@ public class QRCodeScanAct extends BaseAct implements SurfaceHolder.Callback {
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case 1:
+                    tvSn.setText("");
                     String picturePath = getRealFilePath(this, data.getData());
                     // 获得待解析的图片
                     //Bitmap bitmap = BitmapFactory.decodeFile(picturePath);
-                    Bitmap bitmap = getSmallBitmap(picturePath);//图像压缩
-                    Result resultString = decode(bitmap);
+                    Bitmap bitmap = getBitmap(picturePath, 1200, 1200);//图像压缩
+//                    Result resultString = decodeLocalPicByZXing(bitmap);
+//                    KLog.e(resultString);
 
-                    if (resultString == null) {
-                        ToastUtil.shortShow(getApplicationContext(), getString(R.string.qrcode_unknow));
+
+                    KLog.e("output width", bitmap.getWidth());
+                    KLog.e("output height", bitmap.getHeight());
+
+                    SymbolSet symbols = decodeLocalPicByZBar(bitmap);
+
+                    if (symbols != null) {
+                        handleDecode(symbols);
                     } else {
-                        String resultImage = resultString.getText();
-                        KLog.e(resultImage);
-                        finish();
+                        ToastUtil.shortShow(getApplicationContext(), getString(R.string.qrcode_unknow));
                     }
+
+                    bitmap.recycle();
+
 
                     break;
 
@@ -177,6 +200,7 @@ public class QRCodeScanAct extends BaseAct implements SurfaceHolder.Callback {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+
     /**
      * Try to return the absolute file path from the given Uri
      *
@@ -184,6 +208,7 @@ public class QRCodeScanAct extends BaseAct implements SurfaceHolder.Callback {
      * @param uri     uri
      * @return the file path or null
      */
+
     public static String getRealFilePath(final Context context, final Uri uri) {
         if (null == uri) return null;
         final String scheme = uri.getScheme();
@@ -205,6 +230,57 @@ public class QRCodeScanAct extends BaseAct implements SurfaceHolder.Callback {
             }
         }
         return data;
+    }
+
+
+    /**
+     * 根据路径获得图片并压缩，返回bitmap
+     *
+     * @param filePath 路径
+     */
+    public static Bitmap getBitmap(String path, int maxWidth, int maxHeight) {
+        BitmapFactory.Options opts = new BitmapFactory.Options();
+        // 设置为ture只获取图片大小
+        opts.inJustDecodeBounds = true;
+        opts.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        // 返回为空
+        BitmapFactory.decodeFile(path, opts);
+        int width = opts.outWidth;
+        int height = opts.outHeight;
+
+        KLog.e("input width", width);
+        KLog.e("input height", height);
+
+        int outWidth = 0;
+        int outHeight = 0;
+        if (width > maxWidth && height > maxHeight) {
+            outWidth = maxWidth;
+            outHeight = height * outWidth / width;
+            int tempOutHeight = outHeight;
+            if (outHeight > maxHeight) {
+                outHeight = maxHeight;
+                outWidth = outWidth * maxHeight / tempOutHeight;
+            }
+
+        } else if (width > maxWidth) {
+            outWidth = maxWidth;
+            outHeight = height * outWidth / width;
+
+        } else if (height > maxHeight) {
+            outHeight = maxHeight;
+            outWidth = width * outHeight / height;
+        } else {
+            outWidth = width;
+            outHeight = height;
+
+        }
+        opts.inJustDecodeBounds = false;
+
+        opts.outHeight = outHeight;
+        opts.outWidth = outWidth;
+
+        WeakReference<Bitmap> weak = new WeakReference<Bitmap>(BitmapFactory.decodeFile(path, opts));
+        return Bitmap.createScaledBitmap(weak.get(), outWidth, outHeight, true);
     }
 
     /**
@@ -253,18 +329,19 @@ public class QRCodeScanAct extends BaseAct implements SurfaceHolder.Callback {
         return inSampleSize;
     }
 
+
     /**
      * 解析QR图内容
      *
      * @param bm 二维码
      * @return com.google.zxing.Result
      */
-    public Result decode(Bitmap bm) {
+    public Result decodeLocalPicByZXing(Bitmap bm) {
         Hashtable<DecodeHintType, String> hints;
         BinaryBitmap bb;
         QRCodeReader reader;
 
-        hints = new Hashtable<DecodeHintType, String>();
+        hints = new Hashtable<>();
         hints.put(DecodeHintType.CHARACTER_SET, "utf-8");
         reader = new QRCodeReader();
 
@@ -284,6 +361,29 @@ public class QRCodeScanAct extends BaseAct implements SurfaceHolder.Callback {
         return null;
     }
 
+    public SymbolSet decodeLocalPicByZBar(Bitmap bm) {
+
+        byte[] data = BitmapUtil.getYUV420sp(bm.getWidth(), bm.getHeight(), bm);
+        int width = bm.getWidth();
+        int height = bm.getHeight();
+
+
+        //构造存储图片的Image
+        Image mResult = new Image(width, height, "Y800");//第三个参数不知道是干嘛的
+        //设置Image的数据资源
+        mResult.setData(data);
+        ImageScanner imageScanner = new ImageScanner();
+
+        int mResultCode = imageScanner.scanImage(mResult);
+
+        //获取扫描结果的代码
+        //如果代码不为0，表示扫描成功
+        if (mResultCode != 0) {
+            return imageScanner.getResults();
+        }
+
+        return null;
+    }
 
     /**
      * 初始化窗口设置
@@ -349,6 +449,11 @@ public class QRCodeScanAct extends BaseAct implements SurfaceHolder.Callback {
         // mFlashLamp=FlashLamp.getInstance(mContext);
         // mFlashLamp.turnLightOn();
 
+    }
+
+    @AfterViews
+    void init() {
+        tvSn.setText("");
     }
 
     /**
@@ -460,6 +565,44 @@ public class QRCodeScanAct extends BaseAct implements SurfaceHolder.Callback {
 //        EventBusUtil.getInstance().post();
 
         finish();
+    }
+
+    public void handleDecode(SymbolSet symbols) {
+        inactivityTimer.onActivity();
+        if (symbols != null && symbols.size() > 0) {
+            for (Symbol symbol : symbols) {
+                String text = symbol.getData();
+                KLog.e(text);
+                if (!AbStrUtil.isEmpty(text)) {
+                    EventBus.getDefault().post(new ViewMessage(R.id.scan_result, text));
+                    tvSn.setText(text);
+
+                    if (!BaseApplication.getInstance().isContinueScan()||BaseApplication.isEdit) {
+                        finish();
+                    } else {
+                        KLog.e("request");
+                        //比较容易出现频繁扫描成功的情况
+                        restartPreviewAfterDelay(300);
+                    }
+                    return;
+                }
+
+            }
+
+        }
+
+//        for (Symbol symbol : symbols) {
+//            if (symbol.getType() == Symbol.CODE128 || symbol.getType() == Symbol.QRCODE ||
+//                    symbol.getType() == Symbol.CODABAR || symbol.getType() == Symbol.ISBN10 ||
+//                    symbol.getType() == Symbol.ISBN13 || symbol.getType() == Symbol.DATABAR ||
+//                    symbol.getType() == Symbol.DATABAR_EXP || symbol.getType() == Symbol.I25)
+//
+//            {
+
+
+//            }
+//        }
+
     }
 
 
